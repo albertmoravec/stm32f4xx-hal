@@ -355,6 +355,13 @@ impl CFGR {
             // Enable PLL
             rcc.cr.modify(|_, w| w.pllon().set_bit());
 
+            // Configure I2S PLL
+            rcc.plli2scfgr
+                .write(|w| unsafe { w.plli2sn().bits(192).plli2sr().bits(5).plli2sq().bits(2) });
+
+            // Enable I2S PLL
+            rcc.cr.modify(|_, w| w.plli2son().set_bit());
+
             // Enable voltage regulator overdrive if HCLK is above the limit
             #[cfg(any(
                 feature = "stm32f427",
@@ -378,6 +385,9 @@ impl CFGR {
 
             // Wait for PLL to stabilise
             while rcc.cr.read().pllrdy().bit_is_clear() {}
+            
+            // Wait for I2S PLL to stabilise
+            while rcc.cr.read().plli2srdy().bit_is_clear() {}
         }
 
         // Set scaling factors
