@@ -1641,7 +1641,7 @@ macro_rules! halUsartImpl {
                 }
             }
 
-            unsafe impl PeriAddress for Rx<$USARTX> {
+            unsafe impl PeriAddress<u8> for Rx<$USARTX> {
                 #[inline(always)]
                 fn address(&self) -> u32 {
                     &(unsafe{ &(*$USARTX::ptr()) }.dr) as *const _ as u32
@@ -1668,7 +1668,7 @@ macro_rules! halUsartImpl {
                 }
             }
 
-            unsafe impl PeriAddress for Tx<$USARTX> {
+            unsafe impl PeriAddress<u8> for Tx<$USARTX> {
                 #[inline(always)]
                 fn address(&self) -> u32 {
                     &(unsafe{ &(*$USARTX::ptr()) }.dr) as *const _ as u32

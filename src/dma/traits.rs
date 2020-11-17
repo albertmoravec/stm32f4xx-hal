@@ -184,9 +184,9 @@ pub trait Direction: Bits<u8> {
 ///
 /// Both the memory size and the address must be correct for the specific peripheral and for the
 /// DMA.
-pub unsafe trait PeriAddress {
+pub unsafe trait PeriAddress<T> {
     /// Memory size of the peripheral.
-    type MemSize;
+    type MemSize;// = T;
 
     /// Returns the address to be used by the DMA stream.
     fn address(&self) -> u32;
@@ -196,7 +196,7 @@ pub unsafe trait PeriAddress {
 macro_rules! address {
     ($(($peripheral:ty, $register:ident, $size: ty)),+ $(,)*) => {
         $(
-            unsafe impl PeriAddress for $peripheral {
+            unsafe impl PeriAddress<$size> for $peripheral {
                 #[inline(always)]
                 fn address(&self) -> u32 {
                     &self.$register as *const _ as u32
@@ -406,6 +406,7 @@ address!(
     (DMAR<pac::TIM3>, dmar, u16),
     (DMAR<pac::TIM4>, dmar, u16),
     (pac::SPI3, dr, u8),
+    (pac::SPI3, dr, u16),
     (pac::I2C3, dr, u8),
 );
 
@@ -700,7 +701,9 @@ address!(
     (pac::I2C1, dr, u8),
     (pac::I2C2, dr, u8),
     (pac::SPI1, dr, u8),
+    (pac::SPI1, dr, u16),
     (pac::SPI2, dr, u8),
+    (pac::SPI2, dr, u16),
     (pac::USART1, dr, u8),
     (pac::USART2, dr, u8),
     (pac::USART6, dr, u8),
@@ -799,7 +802,10 @@ dma_map!(
     feature = "stm32f469",
     feature = "stm32f479",
 ))]
-address!((pac::SPI4, dr, u8),);
+address!(
+    (pac::SPI4, dr, u8),
+    (pac::SPI4, dr, u16),
+);
 
 #[cfg(any(
     feature = "stm32f417",
@@ -1163,7 +1169,10 @@ dma_map!(
     feature = "stm32f469",
     feature = "stm32f479",
 ))]
-address!((pac::SPI5, dr, u8),);
+address!(
+    (pac::SPI5, dr, u8),
+    (pac::SPI5, dr, u16),
+);
 
 #[cfg(any(
     feature = "stm32f411",
@@ -1396,7 +1405,10 @@ dma_map!(
     feature = "stm32f469",
     feature = "stm32f479",
 ))]
-address!((pac::SPI6, dr, u8),);
+address!(
+    (pac::SPI6, dr, u8),
+    (pac::SPI6, dr, u16),
+);
 
 /*
 #[cfg(any(

@@ -122,21 +122,21 @@ impl Direction for MemoryToPeripheral {
     }
 }
 
-unsafe impl PeriAddress for MemoryToMemory<u8> {
+unsafe impl PeriAddress<u8> for MemoryToMemory<u8> {
     fn address(&self) -> u32 {
         unimplemented!()
     }
     type MemSize = u8;
 }
 
-unsafe impl PeriAddress for MemoryToMemory<u16> {
+unsafe impl PeriAddress<u16> for MemoryToMemory<u16> {
     fn address(&self) -> u32 {
         unimplemented!()
     }
     type MemSize = u16;
 }
 
-unsafe impl PeriAddress for MemoryToMemory<u32> {
+unsafe impl PeriAddress<u32> for MemoryToMemory<u32> {
     fn address(&self) -> u32 {
         unimplemented!()
     }
@@ -843,11 +843,11 @@ pub mod config {
 }
 
 /// DMA Transfer.
-pub struct Transfer<STREAM, CHANNEL, PERIPHERAL, DIRECTION, BUF>
+pub struct Transfer<STREAM, CHANNEL, PERIPHERAL, DIRECTION, BUF, T>
 where
     STREAM: Stream,
-    PERIPHERAL: PeriAddress,
-    BUF: WriteBuffer<Word = <PERIPHERAL as PeriAddress>::MemSize> + 'static,
+    PERIPHERAL: PeriAddress<T>,
+    BUF: WriteBuffer<Word = T> + 'static,
 {
     stream: STREAM,
     _channel: PhantomData<CHANNEL>,
@@ -859,18 +859,18 @@ where
     transfer_length: u16,
 }
 
-impl<STREAM, CHANNEL, PERIPHERAL, DIR, BUF> Transfer<STREAM, CHANNEL, PERIPHERAL, DIR, BUF>
+impl<STREAM, CHANNEL, PERIPHERAL, DIR, BUF, L> Transfer<STREAM, CHANNEL, PERIPHERAL, DIR, BUF, L>
 where
     STREAM: Stream,
     CHANNEL: Channel,
     DIR: Direction,
-    PERIPHERAL: PeriAddress,
-    BUF: WriteBuffer<Word = <PERIPHERAL as PeriAddress>::MemSize> + 'static,
+    PERIPHERAL: PeriAddress<L>,
+    BUF: WriteBuffer<Word = L> + 'static,
     (STREAM, CHANNEL, PERIPHERAL, DIR): DMASet,
 {
     /// Applies all fields in DmaConfig.
     fn apply_config(&mut self, config: config::DmaConfig) {
-        let msize = mem::size_of::<<PERIPHERAL as PeriAddress>::MemSize>() / 2;
+        let msize = mem::size_of::<L>() / 2;
 
         self.stream.clear_interrupts();
         self.stream.set_priority(config.priority);
@@ -1268,11 +1268,11 @@ where
     }
 }
 
-impl<STREAM, CHANNEL, PERIPHERAL, DIR, BUF> Drop for Transfer<STREAM, CHANNEL, PERIPHERAL, DIR, BUF>
+impl<STREAM, CHANNEL, PERIPHERAL, DIR, BUF, T> Drop for Transfer<STREAM, CHANNEL, PERIPHERAL, DIR, BUF, T>
 where
     STREAM: Stream,
-    PERIPHERAL: PeriAddress,
-    BUF: WriteBuffer<Word = <PERIPHERAL as PeriAddress>::MemSize> + 'static,
+    PERIPHERAL: PeriAddress<T>,
+    BUF: WriteBuffer<Word = T> + 'static,
 {
     fn drop(&mut self) {
         self.stream.disable();
